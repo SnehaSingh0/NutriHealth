@@ -57,6 +57,7 @@ export interface User {
 
 export interface AuthContextType {
   user: User | null;
+  /** False once auth is restored from storage and profile sync (if needed) has completed. */
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;

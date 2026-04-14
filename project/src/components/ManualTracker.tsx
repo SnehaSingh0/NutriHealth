@@ -140,17 +140,21 @@ const ManualTracker: React.FC = () => {
   const goalPercentage = profile ? (todayData.caloriesConsumed / profile.dailyCalorieGoal) * 100 : 0;
 
   return (
-    <div className="flex-1 overflow-auto">
-      <div className="p-8 max-w-6xl">
+    <div className="flex-1 min-w-0 overflow-auto">
+      <div className="w-full max-w-6xl mx-auto px-4 py-6 sm:px-6 sm:py-8 md:px-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Manual Food Tracker</h1>
-          <p className="text-gray-600">Log meals, track nutrition, get smart recommendations</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+            Manual Food Tracker
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600">
+            Log meals, track nutrition, get smart recommendations
+          </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Daily Progress Card */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 sm:p-6 border border-blue-200 min-w-0">
             <div className="flex items-center gap-2 mb-3">
               <Zap size={20} className="text-blue-600" />
               <p className="text-sm font-semibold text-blue-900">Daily Progress</p>
@@ -170,7 +174,7 @@ const ManualTracker: React.FC = () => {
           </div>
 
           {/* Weight Prediction Card */}
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 sm:p-6 border border-green-200 min-w-0">
             <div className="flex items-center gap-2 mb-3">
               <TrendingDown size={20} className="text-green-600" />
               <p className="text-sm font-semibold text-green-900">7-Day Prediction</p>
@@ -182,24 +186,24 @@ const ManualTracker: React.FC = () => {
           </div>
 
           {/* Macros Card */}
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 sm:p-6 border border-purple-200 min-w-0 sm:col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-3">
-              <Utensils size={20} className="text-purple-600" />
+              <Utensils size={20} className="text-purple-600 shrink-0" />
               <p className="text-sm font-semibold text-purple-900">Today's Macros</p>
             </div>
-            <div className="space-y-1 text-sm">
-              <p className="text-purple-700">🥩 Protein: <span className="font-bold">{Math.round(todayData.protein)}g</span></p>
-              <p className="text-purple-700">🌾 Carbs: <span className="font-bold">{Math.round(todayData.carbs)}g</span></p>
-              <p className="text-purple-700">🥑 Fats: <span className="font-bold">{Math.round(todayData.fats)}g</span></p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-1 gap-2 text-sm">
+              <p className="text-purple-700 min-w-0">🥩 Protein: <span className="font-bold">{Math.round(todayData.protein)}g</span></p>
+              <p className="text-purple-700 min-w-0">🌾 Carbs: <span className="font-bold">{Math.round(todayData.carbs)}g</span></p>
+              <p className="text-purple-700 min-w-0">🥑 Fats: <span className="font-bold">{Math.round(todayData.fats)}g</span></p>
             </div>
           </div>
         </div>
 
         {/* Main Form & Tips */}
-        <div className="grid grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Form */}
-          <div className="col-span-2 bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Add Food Entry</h2>
+          <div className="lg:col-span-2 bg-white rounded-lg shadow-lg p-4 sm:p-6 md:p-8 min-w-0">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Add Food Entry</h2>
 
             {error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-center gap-2">
@@ -229,7 +233,7 @@ const ManualTracker: React.FC = () => {
               </div>
 
               {/* Quantity and Unit */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Quantity *</label>
                   <input
@@ -269,7 +273,7 @@ const ManualTracker: React.FC = () => {
               </div>
 
               {/* Macros */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Carbs (g)</label>
                   <input
@@ -310,7 +314,7 @@ const ManualTracker: React.FC = () => {
           </div>
 
           {/* Smart Tips Sidebar */}
-          <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg p-6 border border-yellow-200">
+          <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg p-4 sm:p-6 border border-yellow-200 min-w-0">
             <div className="flex items-center gap-2 mb-4">
               <Lightbulb size={22} className="text-yellow-600" />
               <h3 className="font-bold text-yellow-900">Smart Tips</h3>
@@ -348,8 +352,8 @@ const ManualTracker: React.FC = () => {
         </div>
 
         {/* Today's Entries */}
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Today's Food Log</h2>
+        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 md:p-8 min-w-0">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Today's Food Log</h2>
 
           {todayData.foodLogs.length === 0 ? (
             <div className="text-center py-12">
@@ -362,31 +366,33 @@ const ManualTracker: React.FC = () => {
               {todayData.foodLogs.map((food) => (
                 <div
                   key={food.id}
-                  className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg hover:shadow-md transition-shadow"
+                  className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg hover:shadow-md transition-shadow min-w-0"
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <h4 className="font-semibold text-gray-900">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                      <h4 className="font-semibold text-gray-900 break-words">
                         {food.name}
                         {food.quantity && (
-                          <span className="text-sm text-gray-500 ml-2">
+                          <span className="block sm:inline text-sm text-gray-500 sm:ml-2 font-normal">
                             ({food.quantity} {food.unit})
                           </span>
                         )}
                       </h4>
-                      <span className="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">
+                      <span className="shrink-0 self-start sm:self-auto bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
                         {food.calories} cal
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-600">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-gray-600">
                       <span>🌾 {food.carbs}g</span>
                       <span>🥩 {food.protein}g</span>
                       <span>🥑 {food.fats}g</span>
                     </div>
                   </div>
                   <button
+                    type="button"
                     onClick={() => removeFood(food.id)}
-                    className="text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                    className="self-end sm:self-auto text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition-colors shrink-0"
+                    aria-label={`Remove ${food.name}`}
                   >
                     <X size={20} />
                   </button>
@@ -394,8 +400,8 @@ const ManualTracker: React.FC = () => {
               ))}
 
               {/* Daily Summary */}
-              <div className="mt-6 p-4 bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg border-2 border-blue-300">
-                <div className="grid grid-cols-4 gap-4">
+              <div className="mt-6 p-3 sm:p-4 bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg border-2 border-blue-300 min-w-0 overflow-x-auto">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 min-w-0">
                   <div>
                     <p className="text-xs text-gray-600">Total Calories</p>
                     <p className="text-xl font-bold text-blue-700">{todayData.caloriesConsumed}</p>

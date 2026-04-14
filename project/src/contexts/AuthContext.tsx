@@ -1,5 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AuthContextType, User } from '../types';
+import {
+  hasHealthProfileInStorage,
+  persistServerProfileIfPresent,
+  HEALTH_PROFILE_STORAGE_KEY,
+} from '../utils/dataUtils';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -17,21 +22,50 @@ interface AuthProviderProps {
 
 const API_BASE = 'http://localhost:5000';
 
+async function syncHealthProfileFromServerIfMissing(token: string): Promise<void> {
+  if (!token || hasHealthProfileInStorage()) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return;
+    const body = await res.json();
+    persistServerProfileIfPresent(body.profile as Record<string, unknown> | null | undefined);
+  } catch {
+    /* offline or server down — keep local state */
+  }
+}
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  /** True until persisted auth is read and optional server profile sync has finished (prevents HealthAssessment flash). */
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in (from localStorage)
-    const storedUser = localStorage.getItem('auth_user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        localStorage.removeItem('auth_user');
+    let cancelled = false;
+
+    const hydrateSession = async () => {
+      const storedUser = localStorage.getItem('auth_user');
+      const token = localStorage.getItem('auth_token') || '';
+
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser) as User;
+          await syncHealthProfileFromServerIfMissing(token);
+          if (!cancelled) setUser(parsedUser);
+        } catch {
+          localStorage.removeItem('auth_user');
+          if (!cancelled) setUser(null);
+        }
       }
-    }
-    setLoading(false);
+
+      if (!cancelled) setLoading(false);
+    };
+
+    void hydrateSession();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -52,10 +86,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email: email,
         createdAt: new Date().toISOString(),
       };
-      
+
+      const token = data.token || '';
+      localStorage.setItem('auth_token', token);
+      await syncHealthProfileFromServerIfMissing(token);
       setUser(userData);
       localStorage.setItem('auth_user', JSON.stringify(userData));
-      localStorage.setItem('auth_token', data.token || '');
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -80,10 +116,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email: email,
         createdAt: new Date().toISOString(),
       };
-      
+
+      const token = data.token || '';
+      localStorage.setItem('auth_token', token);
+      await syncHealthProfileFromServerIfMissing(token);
       setUser(userData);
       localStorage.setItem('auth_user', JSON.stringify(userData));
-      localStorage.setItem('auth_token', data.token || '');
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
@@ -94,8 +132,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
     localStorage.removeItem('auth_user');
     localStorage.removeItem('auth_token');
-    localStorage.removeItem('health_profile');
-    localStorage.removeItem('showWelcomePageOnce'); // Reset welcome page flag on logout
+    localStorage.removeItem(HEALTH_PROFILE_STORAGE_KEY);
+    localStorage.removeItem('has_seen_welcome');
   };
 
   return (

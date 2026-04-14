@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { saveProfile } from '../utils/dataUtils';
+import { saveProfile, HEALTH_PROFILE_STORAGE_KEY } from '../utils/dataUtils';
 import { Heart, User, Loader, Ruler, Target, Activity, TrendingUp, AlertCircle } from 'lucide-react';
 import { calculateBMI, calculateCalorieGoal, getRecommendations, getActivityLevelDescription } from '../data/nutritionEngine';
 
@@ -191,36 +191,35 @@ const HealthAssessment: React.FC<HealthAssessmentProps> = ({ onComplete }) => {
         createdAt: new Date().toISOString(),
       };
 
+      const payload = JSON.stringify(profile);
       saveProfile(profile);
+      localStorage.setItem(HEALTH_PROFILE_STORAGE_KEY, payload);
+      localStorage.setItem('has_seen_welcome', 'false');
 
-      // Also send to backend if user is logged in
+      onComplete();
+
       if (user) {
         const token = localStorage.getItem('auth_token');
         if (token) {
-          try {
-            await fetch('http://localhost:5000/api/profile', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-              },
-              body: JSON.stringify({
-                age: parseInt(formData.age),
-                weight,
-                height,
-                gender: formData.gender,
-                activity_level: formData.activityLevel,
-                goal: formData.goal,
-              }),
-            });
-          } catch (err) {
-            // Silently fail - local storage is sufficient
+          void fetch('http://localhost:5000/api/profile', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              age: parseInt(formData.age),
+              weight,
+              height,
+              gender: formData.gender,
+              activity_level: formData.activityLevel,
+              goal: formData.goal,
+            }),
+          }).catch(() => {
             console.log('Backend sync failed, but profile saved locally');
-          }
+          });
         }
       }
-
-      onComplete();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save profile');
     } finally {

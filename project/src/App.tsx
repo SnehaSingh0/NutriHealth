@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 import { useAuth } from './contexts/AuthContext';
-import { useData } from './contexts/DataContext';
-import { getTodayDate, getYesterdayDate } from './utils/dateUtils';
-import { getDailyData, hasCompletedProfileOnce } from './utils/dataUtils';
+import { getTodayDate } from './utils/dateUtils';
+import { hasHealthProfileInStorage, hasSeenHealthWelcomeInStorage } from './utils/dataUtils';
 
 import Login from './components/Login';
 import Register from './components/Register';
@@ -21,15 +20,9 @@ import HealthProfile from './components/HealthProfile';
 export default function App() {
   const { user, loading } = useAuth();
   const [showLogin, setShowLogin] = useState(true);
-  const [hasProfile, setHasProfile] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
+  const [, bumpFlow] = useReducer((n: number) => n + 1, 0);
   const [currentPage, setCurrentPage] = useState('dashboard');
-  const [checkingProfile, setCheckingProfile] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile sidebar state
-  const [justSignedIn, setJustSignedIn] = useState(() => {
-    // Load from localStorage on initial mount
-    return localStorage.getItem('showWelcomePageOnce') === 'true';
-  });
 
   // Verify if we need to handle daily data reset
   useEffect(() => {
@@ -42,82 +35,14 @@ export default function App() {
     }
   }, []);
 
-  useEffect(() => {
-    if (user) {
-      // Check backend for health profile with a timeout
-      const checkProfile = async () => {
-        try {
-          const token = localStorage.getItem('auth_token');
-          const localProfile = localStorage.getItem('health_profile');
-          
-          // PRIORITY 1: If profile exists in localStorage, use it (don't waste time with backend check)
-          if (localProfile) {
-            setHasProfile(true);
-            setJustSignedIn(true);
-            localStorage.setItem('showWelcomePageOnce', 'true');
-            setCheckingProfile(false);
-            return;
-          }
-
-          if (!token) {
-            // No token and no local profile
-            setHasProfile(false);
-            setCheckingProfile(false);
-            return;
-          }
-
-          // Try to fetch from backend with a 5 second timeout (only if no local profile)
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-          try {
-            const response = await fetch('http://localhost:5000/api/profile', {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              },
-              signal: controller.signal
-            });
-
-            clearTimeout(timeoutId);
-
-            if (response.ok) {
-              const data = await response.json();
-              if (data.profile) {
-                localStorage.setItem('health_profile', JSON.stringify(data.profile));
-                setHasProfile(true);
-                setJustSignedIn(true);
-                localStorage.setItem('showWelcomePageOnce', 'true');
-              } else {
-                setHasProfile(false);
-              }
-            } else {
-              setHasProfile(false);
-            }
-          } catch (fetchErr) {
-            clearTimeout(timeoutId);
-            setHasProfile(false);
-          }
-        } catch (err) {
-          console.error('Profile check error:', err);
-          setHasProfile(false);
-        } finally {
-          setCheckingProfile(false);
-        }
-      };
-
-      checkProfile();
-    } else {
-      setCheckingProfile(false);
-    }
-  }, [user]);
-
-  if (loading || checkingProfile) {
+  // `loading` stays true until session hydrate + optional GET /api/profile sync finish (see AuthProvider).
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+        <div className="text-center px-4">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-800 font-medium">Loading your account</p>
+          <p className="text-gray-500 text-sm mt-1">Syncing profile if needed…</p>
         </div>
       </div>
     );
@@ -135,25 +60,21 @@ export default function App() {
     );
   }
 
+  const hasProfile = hasHealthProfileInStorage();
+  const hasSeenWelcome = hasSeenHealthWelcomeInStorage();
+
   if (!hasProfile) {
-    return (
-      <HealthAssessment onComplete={() => {
-        setHasProfile(true);
-        setShowWelcome(true); // Show welcome page after form FOR NEW USERS
-        setJustSignedIn(false);
-      }} />
-    );
+    return <HealthAssessment onComplete={() => bumpFlow()} />;
   }
 
-  // Show welcome page for BOTH new users and returning users on first sign in
-  if (showWelcome || justSignedIn) {
+  if (!hasSeenWelcome) {
     return (
-      <HealthWelcome onContinue={() => {
-        setShowWelcome(false);
-        setJustSignedIn(false); // Mark that we've shown welcome page
-        localStorage.setItem('showWelcomePageOnce', 'false'); // Clear the flag
-        setCurrentPage('dashboard');
-      }} />
+      <HealthWelcome
+        onContinue={() => {
+          setCurrentPage('dashboard');
+          bumpFlow();
+        }}
+      />
     );
   }
 
@@ -180,16 +101,16 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen min-h-0 w-full max-w-full overflow-hidden bg-gray-100">
       <Sidebar 
         active={currentPage} 
         onNavigate={setCurrentPage}
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
       />
-      <div className="flex-1 ml-0 lg:ml-56 overflow-auto">
+      <main className="flex-1 min-w-0 w-full ml-0 md:ml-56 overflow-auto pt-16 md:pt-0">
         {renderPage()}
-      </div>
+      </main>
     </div>
   );
 }

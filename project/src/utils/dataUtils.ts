@@ -2,8 +2,61 @@ import { DailyData, FoodLog, ExerciseLog } from '../types';
 import { getTodayDate, getYesterdayDate } from './dateUtils';
 
 const STORAGE_KEY_PREFIX = 'nutrihealth_daily_';
-const PROFILE_KEY = 'health_profile';
+/** Single source of truth for the localStorage key (must match App routing checks). */
+export const HEALTH_PROFILE_STORAGE_KEY = 'health_profile';
 const HISTORY_KEY = 'nutrihealth_history';
+
+/** Presence of the key — use this instead of truthiness (`getItem` is truthy for the string `"false"`). */
+export function hasHealthProfileInStorage(): boolean {
+  return localStorage.getItem(HEALTH_PROFILE_STORAGE_KEY) !== null;
+}
+
+/** Must use strict string check: `getItem` returns `"false"` for unseen welcome, which is truthy in JS. */
+export function hasSeenHealthWelcomeInStorage(): boolean {
+  return localStorage.getItem('has_seen_welcome') === 'true';
+}
+
+/**
+ * After login, if the device has no local profile but the API returns one, persist it for App routing.
+ * Expects the `profile` object from GET /api/profile (snake_case fields).
+ */
+export function persistServerProfileIfPresent(apiProfile: Record<string, unknown> | null | undefined): void {
+  if (!apiProfile || typeof apiProfile !== 'object') return;
+
+  const age = apiProfile.age;
+  const weight = apiProfile.weight;
+  const height = apiProfile.height;
+  const gender = apiProfile.gender;
+  if (age == null || weight == null || height == null || gender == null || gender === '') return;
+
+  const completed =
+    apiProfile.completed_assessment === 1 ||
+    apiProfile.completed_assessment === true;
+
+  const local = {
+    age: Number(age),
+    weight: Number(weight),
+    height: Number(height),
+    gender: String(gender),
+    activityLevel: String(apiProfile.activity_level ?? 'moderate'),
+    goal: 'maintain',
+    dailyCalorieGoal: Number(apiProfile.daily_calorie_goal) || 0,
+    bmi: apiProfile.bmi != null ? Number(apiProfile.bmi) : undefined,
+    bmiCategory:
+      apiProfile.bmi_category != null ? String(apiProfile.bmi_category) : '',
+    bloodPressure: '',
+    medicalCondition: '',
+    createdAt:
+      typeof apiProfile.created_at === 'string'
+        ? apiProfile.created_at
+        : new Date().toISOString(),
+  };
+
+  saveProfile(local);
+  if (completed) {
+    localStorage.setItem('has_seen_welcome', 'true');
+  }
+}
 
 export const initializeDailyData = (date: string): DailyData => {
   return {
@@ -89,13 +142,12 @@ export const removeExerciseLog = (exerciseId: string, date: string = getTodayDat
 };
 
 export const saveProfile = (profile: any): void => {
-  localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
-  // Mark that user has completed profile setup
+  localStorage.setItem(HEALTH_PROFILE_STORAGE_KEY, JSON.stringify(profile));
   localStorage.setItem('profile_completed_once', 'true');
 };
 
 export const getProfile = (): any => {
-  const stored = localStorage.getItem(PROFILE_KEY);
+  const stored = localStorage.getItem(HEALTH_PROFILE_STORAGE_KEY);
   return stored ? JSON.parse(stored) : null;
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { getProfile } from '../utils/dataUtils';
 import { Heart, Activity, Target, TrendingUp, Info } from 'lucide-react';
 
@@ -25,15 +25,8 @@ const getMedicalConditionInfo: { [key: string]: { icon: string; description: str
 };
 
 const HealthWelcome: React.FC<HealthWelcomeProps> = ({ onContinue }) => {
-  const [profile, setProfile] = useState<any>(null);
+  const [profile] = useState(() => getProfile());
   const [selectedCondition, setSelectedCondition] = useState<string | null>(null);
-
-  useEffect(() => {
-    const savedProfile = getProfile();
-    if (savedProfile) {
-      setProfile(savedProfile);
-    }
-  }, []);
 
   if (!profile) {
     return null;
@@ -56,6 +49,11 @@ const HealthWelcome: React.FC<HealthWelcomeProps> = ({ onContinue }) => {
       return 'Check the Personalized Diet page for calorie-surplus meal plans with protein focus';
     }
     return 'Check the Personalized Diet page for balanced meal plans';
+  };
+
+  const handleContinue = () => {
+    localStorage.setItem('has_seen_welcome', 'true');
+    onContinue();
   };
 
   return (
@@ -255,7 +253,7 @@ const HealthWelcome: React.FC<HealthWelcomeProps> = ({ onContinue }) => {
 
           {/* Continue Button */}
           <button
-            onClick={onContinue}
+            onClick={handleContinue}
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg text-lg"
           >
             Continue to Dashboard 🚀
