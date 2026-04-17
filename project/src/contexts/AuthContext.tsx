@@ -5,6 +5,7 @@ import {
   persistServerProfileIfPresent,
   HEALTH_PROFILE_STORAGE_KEY,
 } from '../utils/dataUtils';
+import { getApiUrl } from '../config/api';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -20,12 +21,10 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-const API_BASE = 'http://localhost:5000';
-
 async function syncHealthProfileFromServerIfMissing(token: string): Promise<void> {
   if (!token || hasHealthProfileInStorage()) return;
   try {
-    const res = await fetch(`${API_BASE}/api/profile`, {
+    const res = await fetch(getApiUrl('/api/profile'), {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return;
@@ -70,7 +69,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch(`${API_BASE}/api/auth/login`, {
+      const response = await fetch(getApiUrl('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -100,7 +99,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (email: string, password: string) => {
     try {
-      const response = await fetch(`${API_BASE}/api/auth/register`, {
+      const response = await fetch(getApiUrl('/api/auth/register'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

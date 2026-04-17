@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getProfile, saveProfile } from '../utils/dataUtils';
+import { getApiUrl } from '../config/api';
 import { User, Edit2, Save, X, TrendingUp, Target, Activity } from 'lucide-react';
 
 const HealthProfile: React.FC = () => {
@@ -104,7 +105,7 @@ const HealthProfile: React.FC = () => {
       const token = localStorage.getItem('auth_token');
       if (token) {
         try {
-          await fetch('http://localhost:5000/api/profile', {
+          await fetch(getApiUrl('/api/profile'), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

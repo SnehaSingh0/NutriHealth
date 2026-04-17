@@ -46,8 +46,9 @@ project/
 
 2. **Configure Environment Variables**
    
-   Create or update `.env` file with your Supabase credentials:
+   Create or update `.env` file:
    ```
+   VITE_API_BASE_URL=http://localhost:5000
    VITE_SUPABASE_URL=https://your-project.supabase.co
    VITE_SUPABASE_ANON_KEY=your-anon-key
    ```
@@ -200,8 +201,53 @@ The application uses PostgreSQL with the following key tables:
 
 | Variable | Description |
 |----------|-------------|
+| `VITE_API_BASE_URL` | Backend API base URL (Render backend URL in production) |
 | `VITE_SUPABASE_URL` | Your Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | Your Supabase anonymous key (safe for frontend) |
+
+## Deployment (Manual Website Setup)
+
+### Which frontend host to use?
+
+If your backend is already on Render, deploy frontend on **Vercel** (recommended): faster global CDN for static Vite sites, simpler SPA hosting, and easy env var setup.
+
+You can still use Render Static Site if you prefer one platform.
+
+### Option A: Frontend on Vercel (recommended)
+
+1. Push `project/` to GitHub.
+2. Go to [Vercel](https://vercel.com/) -> **Add New Project**.
+3. Import repo and set:
+   - Framework preset: `Vite`
+   - Root directory: `project`
+   - Build command: `npm run build`
+   - Output directory: `dist`
+4. Add environment variables in Vercel Project Settings:
+   - `VITE_API_BASE_URL=https://<your-render-backend>.onrender.com`
+   - `VITE_SUPABASE_URL=...`
+   - `VITE_SUPABASE_ANON_KEY=...`
+5. Deploy.
+
+Notes:
+- `vercel.json` is added for SPA route rewrites.
+- If backend CORS blocks requests, allow your Vercel domain in backend CORS config.
+
+### Option B: Frontend on Render Static Site
+
+1. Go to [Render](https://render.com/) -> **New** -> **Static Site**.
+2. Connect repo and set:
+   - Root directory: `project`
+   - Build command: `npm install && npm run build`
+   - Publish directory: `dist`
+3. Add env vars:
+   - `VITE_API_BASE_URL=https://<your-render-backend>.onrender.com`
+   - `VITE_SUPABASE_URL=...`
+   - `VITE_SUPABASE_ANON_KEY=...`
+4. In Render Static Site settings, add a rewrite:
+   - Source: `/*`
+   - Destination: `/index.html`
+   - Action: `Rewrite`
+5. Deploy.
 
 ## Frontend Features
 

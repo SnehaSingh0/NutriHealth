@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { saveProfile, HEALTH_PROFILE_STORAGE_KEY } from '../utils/dataUtils';
+import { getApiUrl } from '../config/api';
 import { Heart, User, Loader, Ruler, Target, Activity, TrendingUp, AlertCircle } from 'lucide-react';
 import { calculateBMI, calculateCalorieGoal, getRecommendations, getActivityLevelDescription } from '../data/nutritionEngine';
 
@@ -201,7 +202,7 @@ const HealthAssessment: React.FC<HealthAssessmentProps> = ({ onComplete }) => {
       if (user) {
         const token = localStorage.getItem('auth_token');
         if (token) {
-          void fetch('http://localhost:5000/api/profile', {
+          void fetch(getApiUrl('/api/profile'), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
